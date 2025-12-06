@@ -28,34 +28,87 @@ export default function Home() {
 
   const total = cart.reduce((s, it) => s + it.price * it.qty, 0);
 
+  // async function submit(e) {
+  //   e.preventDefault();
+  //   if (!name.trim() || !phone.trim() || cart.length === 0) {
+  //     alert("Please enter name, phone and add items.");
+  //     return;
+  //   }
+  //   try {
+  //     const session_id = new Date().toISOString().slice(0, 10);
+  //     const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.qty }));
+  //     const payload = {
+  //       createdAt: serverTimestamp(),
+  //       customerName: name.trim(),
+  //       phone: String(phone).trim(),
+  //       items,
+  //       total,
+  //       token: null,
+  //       status: "pending",
+  //       session_id
+  //     };
+  //     const ref = await addDoc(collection(db, "orders"), payload);
+  //     // Save phone locally for quick lookup
+  //     try { localStorage.setItem("myPhone", String(phone).trim()); } catch (e) {}
+  //     setLocation(`/mytoken?phone=${encodeURIComponent(phone.trim())}`);
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Failed to place order. Try again.");
+  //   }
+  // }
+
+
   async function submit(e) {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim() || cart.length === 0) {
-      alert("Please enter name, phone and add items.");
-      return;
-    }
-    try {
-      const session_id = new Date().toISOString().slice(0, 10);
-      const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.qty }));
-      const payload = {
-        createdAt: serverTimestamp(),
-        customerName: name.trim(),
-        phone: String(phone).trim(),
-        items,
-        total,
-        token: null,
-        status: "pending",
-        session_id
-      };
-      const ref = await addDoc(collection(db, "orders"), payload);
-      // Save phone locally for quick lookup
-      try { localStorage.setItem("myPhone", String(phone).trim()); } catch (e) {}
-      setLocation(`/mytoken?phone=${encodeURIComponent(phone.trim())}`);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to place order. Try again.");
-    }
+  e.preventDefault();
+
+  // DEBUG LOG 1 — Check if button works
+  console.log("SUBMIT CLICKED");
+
+  if (!name.trim() || !phone.trim() || cart.length === 0) {
+    alert("Please enter name, phone and add items.");
+    return;
   }
+
+  try {
+    const session_id = new Date().toISOString().slice(0, 10);
+
+    const items = cart.map(i => ({
+      id: i.id,
+      name: i.name,
+      price: i.price,
+      quantity: i.qty
+    }));
+
+    const payload = {
+      createdAt: serverTimestamp(),
+      customerName: name.trim(),
+      phone: String(phone).trim(),
+      items,
+      total,
+      token: null,
+      status: "pending",
+      session_id
+    };
+
+    // DEBUG LOG 2 — Data being sent to Firestore
+    console.log("ADDING ORDER TO FIRESTORE:", payload);
+
+    const ref = await addDoc(collection(db, "orders"), payload);
+
+    // DEBUG LOG 3 — Firestore saved successfully
+    console.log("ORDER SAVED WITH ID:", ref.id);
+
+    // Save phone locally
+    localStorage.setItem("myPhone", String(phone).trim());
+
+    // Redirect to token page
+    setLocation(`/mytoken?phone=${encodeURIComponent(phone.trim())}`);
+
+  } catch (err) {
+    console.error("ERROR WHILE SAVING ORDER:", err);
+    alert("Failed to place order. Try again.");
+  }
+}
 
   return (
     <div style={{ padding: 20, maxWidth: 720, margin: "auto" }}>
